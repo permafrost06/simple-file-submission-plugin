@@ -15,6 +15,16 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+$lines = file(
+    path_join(plugin_dir_path(__FILE__), '.env'),
+    FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES
+);
+
+foreach ($lines as $line_num => $line) {
+    [$key, $value] = explode('=', $line, 2);
+    $_ENV[$key] = $value;
+}
+
 add_shortcode('file_upload_form', function () {
     wp_enqueue_script(
         'file_upload_handler',
@@ -43,7 +53,7 @@ function verify_turnstile_token() {
     $token = $_POST['cf-turnstile-response'] ?? null;
     $ip = $_SERVER['HTTP_CF_CONNECTING_IP'] ?? $_SERVER['REMOTE_ADDR'] ?? null;
 
-    $secretKey = '1x0000000000000000000000000000000AA';
+    $secretKey = $_ENV['cf_secretkey'];
 
     $url = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 

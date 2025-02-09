@@ -34,7 +34,7 @@
                 <div class="error file" id="file_error"></div>
                 <div
                     class="cf-turnstile"
-                    data-sitekey="1x00000000000000000000AA"
+                    data-sitekey="<?php echo $_ENV['cf_sitekey'] ?>"
                     data-size="flexible"
                     data-theme="light"
                     data-callback="turnstileCallback"
