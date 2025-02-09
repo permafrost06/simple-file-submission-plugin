@@ -39,7 +39,7 @@ function render_file_submissions_page() {
     echo '<table class="wp-list-table widefat fixed striped">';
     echo '<thead>
             <tr>
-                <th>ID</th>
+                <th style="width: 15px">ID</th>
                 <th>Name</th>
                 <th>Email</th>
                 <th>Files</th>
