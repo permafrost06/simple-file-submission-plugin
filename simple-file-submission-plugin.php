@@ -21,7 +21,7 @@ add_action('admin_menu', function () {
     add_menu_page(
         'File Submissions', // Page title
         'File Submissions', // Menu title
-        'manage_options', // Capability
+        'edit_posts', // Capability
         'file-submissions', // Menu slug
         'render_file_submissions_page', // Callback function
         'dashicons-media-text', // Icon
