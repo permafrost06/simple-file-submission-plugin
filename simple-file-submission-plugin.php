@@ -15,6 +15,58 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly.
 }
 
+register_activation_hook(__FILE__, 'add_db_table');
+
+add_action('admin_menu', function () {
+    add_menu_page(
+        'File Submissions', // Page title
+        'File Submissions', // Menu title
+        'manage_options', // Capability
+        'file-submissions', // Menu slug
+        'render_file_submissions_page', // Callback function
+        'dashicons-media-text', // Icon
+        20 // Position
+    );
+});
+
+function render_file_submissions_page() {
+    global $wpdb;
+    $table_name = $wpdb->prefix . 'file_submissions';
+    $entries = $wpdb->get_results("SELECT * FROM $table_name ORDER BY id DESC");
+    
+    echo '<div class="wrap">';
+    echo '<h1>File Submissions</h1>';
+    echo '<table class="wp-list-table widefat fixed striped">';
+    echo '<thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Files</th>
+            </tr>
+          </thead>';
+    echo '<tbody>';
+    
+    foreach ($entries as $entry) {
+        $files = [];
+        if ($entry->file1) $files[] = '<a href="' . esc_url($entry->file1) . '" target="_blank">File 1</a>';
+        if ($entry->file2) $files[] = '<a href="' . esc_url($entry->file2) . '" target="_blank">File 2</a>';
+        if ($entry->file3) $files[] = '<a href="' . esc_url($entry->file3) . '" target="_blank">File 3</a>';
+        $files_output = !empty($files) ? implode(', ', $files) : 'N/A';
+        
+        echo '<tr>
+                <td>' . esc_html($entry->id) . '</td>
+                <td>' . esc_html($entry->name) . '</td>
+                <td>' . esc_html($entry->email) . '</td>
+                <td>' . $files_output . '</td>
+              </tr>';
+    }
+    
+    echo '</tbody>';
+    echo '</table>';
+    echo '</div>';
+}
+
 $lines = file(
     path_join(plugin_dir_path(__FILE__), '.env'),
     FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES
@@ -199,10 +251,14 @@ function handle_file_submission() {
         'test_type' => false, 
     ];
 
+    $uploaded_files = [null, null, null];
+
     $file = $_FILES['file1'];
     $move = wp_handle_upload($file, $overrides);
     if (!$move || isset($move['error'])) {
         $errors['fileError'] = $move['error'];
+    } else {
+        $uploaded_files[0] = $move['url'];
     }
 
     if (isset($_FILES['file2'])) {
@@ -210,6 +266,8 @@ function handle_file_submission() {
         $move = wp_handle_upload($file, $overrides);
         if (!$move || isset($move['error'])) {
             $errors['fileError'] = $move['error'];
+        } else {
+            $uploaded_files[1] = $move['url'];
         }
     }
 
@@ -218,6 +276,8 @@ function handle_file_submission() {
         $move = wp_handle_upload($file, $overrides);
         if (!$move || isset($move['error'])) {
             $errors['fileError'] = $move['error'];
+        } else {
+            $uploaded_files[2] = $move['url'];
         }
     }
 
@@ -225,7 +285,40 @@ function handle_file_submission() {
         return ['errors' => $errors];
     }
 
+    global $wpdb;
+    $wpdb->insert(
+        "{$wpdb->prefix}file_submissions",
+        [
+            'name' => $name,
+            'email' => $email,
+            'file1' => $uploaded_files[0],
+            'file2' => $uploaded_files[1],
+            'file3' => $uploaded_files[2],
+        ]
+    );
+
     return ['success' => true];
+}
+
+function add_db_table() {
+    global $wpdb;
+    $charset_collate = $wpdb->get_charset_collate();
+
+    $create_table_query = "CREATE TABLE IF NOT EXISTS `{$wpdb->prefix}file_submissions` (
+              `id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+              `name` varchar(32) NOT NULL,
+              `email` varchar(255) NOT NULL,
+              `file1` varchar(255) NOT NULL,
+              `file2` varchar(255),
+              `file3` varchar(255)
+            ) {$charset_collate};
+    ";
+
+    if (!function_exists('dbDelta')) {
+      require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+    }
+
+    dbDelta($create_table_query);
 }
 
 add_action('rest_api_init', function () {
