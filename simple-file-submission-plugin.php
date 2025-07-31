@@ -35,7 +35,7 @@ function render_file_submissions_page() {
     $entries = $wpdb->get_results("SELECT * FROM $table_name ORDER BY id DESC");
     
     echo '<div class="wrap">';
-    echo '<h1>File Submissions</h1>';
+    echo '<h1>Updated Heading</h1>';
     echo '<table class="wp-list-table widefat fixed striped">';
     echo '<thead>
             <tr>
