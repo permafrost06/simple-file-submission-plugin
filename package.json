@@ -1,7 +1,7 @@
 {
   "name": "simple-file-submission-plugin",
   "version": "1.0.0",
-  "description": "",
+  "description": ".",
   "main": "index.js",
   "scripts": {
     "build:zip": "zip simple-file-submission-plugin.zip form.php index.js simple-file-submission-plugin.php"
